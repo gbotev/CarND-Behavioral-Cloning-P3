@@ -5,7 +5,7 @@ from os.path import join
 import matplotlib.pyplot as plt
 
 BATCH_SIZE = 256
-EPOCHS = 12
+EPOCHS = 14
 VAL = 0.2
 N_train = None
 
@@ -29,7 +29,7 @@ def read_image(row, prefix_path='', flip=False,  off='None',  angle_correction=0
     #print(type(image),  source_path,   off,  flip)
     return cv2.cvtColor(image, cv2.COLOR_BGR2RGB),  measurement
 
-def read_data(csv_file_location):
+def read_data(csv_file_location,  nb_train):
     lines = []
 
     with open(csv_file_location + 'driving_log.csv') as csvfile:
@@ -48,7 +48,7 @@ def read_data(csv_file_location):
         print("OK exception",  e)
         prefix_path = csv_file_location
         start_line = 1
-    for line in lines[start_line:N_train]:
+    for line in lines[start_line:nb_train]:
         for flip in [False,  True]:
             for off in ['None', 'Left', 'Right']:
                 image,  measurement = read_image(line, prefix_path=prefix_path, flip=flip,  off=off)
@@ -61,8 +61,8 @@ def read_data(csv_file_location):
         "and measurements are:",  len(measurements))
     return X_train,  y_train
 
-X_train,  y_train = read_data('../SelfDrivingBehaviourCloning/my_data/') 
-X_new,  y_new = read_data('../SelfDrivingBehaviourCloning/data/') 
+X_train,  y_train = read_data('../SelfDrivingBehaviourCloning/my_data/' ,  N_train)
+X_new,  y_new = read_data('../SelfDrivingBehaviourCloning/data/',  N_train) 
 X_train = np.append(X_train,  X_new,  axis=0)
 y_train = np.append(y_train,  y_new,  axis=0)
 
@@ -72,7 +72,7 @@ y_train = np.append(y_train,  y_new,  axis=0)
 #Model parameters:
 from keras.models import Sequential
 from keras.layers import Flatten,  Dense,  Lambda,   MaxPooling2D,  Conv2D,  Cropping2D
-from keras.utils import plot_model
+#from keras.utils import plot_model
 
 model = Sequential()
 #160, 320, 3
@@ -114,7 +114,7 @@ model.add(Dense(1))
 
 model.compile(loss='mse',  optimizer='adam')
 
-plot_model(model,  to_file='model.png',  show_layer_names=False,  show_shapes=True)
+#plot_model(model,  to_file='model.png',  show_layer_names=False,  show_shapes=True)
 
 history_object = model.fit(X_train,  y_train,  
         validation_split=VAL,  shuffle=True,  epochs=EPOCHS,  batch_size = BATCH_SIZE)
